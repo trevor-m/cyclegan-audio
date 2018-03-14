@@ -45,8 +45,9 @@ def saveX(X, path, rows=1):
     imageSize=256
     assert X.shape[0]%rows == 0
     int_X = ( (X+1)/2*255).clip(0,255).astype('uint8')
-    int_X = int_X.reshape(-1,imageSize,imageSize, 3)
-    int_X = int_X.reshape(rows, -1, imageSize, imageSize,3).swapaxes(1,2).reshape(rows*imageSize,-1, 3)
+    int_X = int_X.reshape(-1,imageSize,imageSize, 1)
+    int_X = int_X.reshape(rows, -1, imageSize, imageSize,1).swapaxes(1,2).reshape(rows*imageSize,-1, 1)
+    int_X = np.squeeze(int_X)
     img = Image.fromarray(int_X)
     img.save(path)
 
@@ -73,15 +74,17 @@ class ImageGenerator(object):
         self.crop = crop
         
     def read_image(self, fn):
-        im = Image.open(fn).convert('RGB')
-        im = im.resize(self.resize, Image.BILINEAR )
+        im = Image.open(fn)#.convert('RGB')
+        #im = im.resize(self.resize, Image.BILINEAR )
         arr = np.array(im)/255*2-1
-        w1, w2 = (self.resize[0] - self.crop[0])//2, (self.resize[0] + self.crop[0])//2
-        h1, h2 = w1,w2
-        img = arr[h1:h2, w1:w2, :]
-        if randint(0,1):
-            img=img[:,::-1]
-        return img
+        #w1, w2 = (self.resize[0] - self.crop[0])//2, (self.resize[0] + self.crop[0])//2
+        #h1, h2 = w1,w2
+        # img = arr[h1:h2, w1:w2, :]
+        #if randint(0,1):
+        #    img=img[:,::-1]
+        #return img
+        arr = np.expand_dims(arr, axis=3)
+        return arr
 
     def minibatch(self, data, bs):
         length = len(data)
@@ -128,9 +131,9 @@ class Option(object):
         # from CycleGAN/options.lua
         # data
         DATA_ROOT = '',                     # path to images (should have subfolders 'train', 'val', etc)
-        shapeA = (256,256,3),               #(256,256,3),
-        shapeB = (256,256,3),               #(256,256,3),
-        resize = (286,286),                 #(286,286),
+        shapeA = (256,256,1),               #(256,256,3),
+        shapeB = (256,256,1),               #(256,256,3),
+        resize = (256,256),                 #(286,286),
         crop   = (256,256),                 #(256,256),
 
         # net definition
@@ -138,8 +141,8 @@ class Option(object):
         which_model_netG = 'resnet_6blocks',      # selects model to use for netG
         use_lsgan = 1,                      # if 1, use least square GAN, if 0, use vanilla GAN
         perceptionloss = False,    # wether to use CycleGan with perception loss
-        ngf = 64,                           # #  of gen filters in first conv layer
-        ndf = 64,                           # of discrim filters in first conv layer
+        ngf = 16,                           # #  of gen filters in first conv layer
+        ndf = 16,                           # of discrim filters in first conv layer
         lmbd = 10.0,
         lmbd_feat = 1.0,                    
                  

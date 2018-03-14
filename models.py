@@ -272,7 +272,9 @@ class CycleGAN(BaseModel):
             img_id = int(image_name.split('.')[0])
 
             img = imread(os.path.join(test_data_path, image_name))
-            img =  imresize(img, opt.crop)
+            if len(img.shape) == 2:
+                img = np.expand_dims(img, 3)
+            #img =  imresize(img, opt.crop)
 
             imgs[idx] = img
             imgs_id[idx] = img_id
@@ -282,7 +284,7 @@ class CycleGAN(BaseModel):
         print('Predicting test images')
         imgs = imgs/127.5-1
         preds = model.predict(imgs,batch_size=1,verbose=1)
-
+        preds = np.squeeze(preds)
         for idx, e in enumerate(preds):
             imsave(os.path.join(opt.pic_dir,'{}.png'.format(imgs_id[idx])),e)
             if idx % 100 == 0:
